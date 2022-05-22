@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Platform, ActivityIndicator } from 'react-native';
 import { AntDesign, EvilIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -6,8 +6,10 @@ import { formatDistanceToNowStrict } from "date-fns";
 import locale from 'date-fns/locale/en-US'
 import formatDistance from "./helpers/formatDistanceCustom";
 
-export default function HomeScreen({navigation}) {
+export default function HomeScreen({ navigation }) {
   const [data, setData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     getAllTweets();
@@ -17,23 +19,20 @@ export default function HomeScreen({navigation}) {
     axios
       .get('http://127.0.0.1:8000/api/tweets')
       .then(response => {
-        // console.log(response.data);
         setData(response.data);
+        setIsLoading(false)
+        setIsRefreshing(false)
       })
       .catch((function (error) {
-        if (error.response) {
-          // Request made and server responded
-          console.log(error.response.data);
-          console.log(error.response.status);
-          console.log(error.response.headers);
-        } else if (error.request) {
-          // The request was made but no response was received
-          console.log(error.request);
-        } else {
-          // Something happened in setting up the request that triggered an Error
-          console.log('Error', error.message);
-        }
+        console.log(error);
+        setIsLoading(false);
+        setIsRefreshing(false);
       }))
+  }
+
+  function handleRefresh() {
+    setIsRefreshing(true);
+    getAllTweets();
   }
 
   function gotoProfile() {
@@ -82,7 +81,6 @@ export default function HomeScreen({navigation}) {
             numberOfLines={1}
             style={styles.tweetHandle}
           >
-            {/*{formatDistanceToNowStrict(new Date(tweet.created_at))}*/}
             {formatDistanceToNowStrict(new Date(tweet.created_at), {
               locale: {
                 ...locale,
@@ -149,19 +147,25 @@ export default function HomeScreen({navigation}) {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={data}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-        ItemSeparatorComponent={() => (
-          <View style={styles.tweetSeparator}></View>
-        )}
-      />
+      {isLoading ? (
+        <ActivityIndicator style={{ marginTop: 8 }} size="large" color="gray"/>
+      ) : (
+        <FlatList
+          data={data}
+          renderItem={renderItem}
+          keyExtractor={item => item.id.toString()}
+          ItemSeparatorComponent={() => (
+            <View style={styles.tweetSeparator}></View>
+          )}
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+        />
+      )}
       <TouchableOpacity
         style={styles.floatingButton}
         onPress={() => gotoNewTweet()}
       >
-        <AntDesign name="plus" size={26} color="white" />
+        <AntDesign name="plus" size={26} color="white"/>
       </TouchableOpacity>
     </View>
   )
