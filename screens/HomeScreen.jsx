@@ -3,23 +3,34 @@ import { AntDesign, EvilIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { formatDistanceToNowStrict } from "date-fns";
-import locale from 'date-fns/locale/en-US'
+import locale from 'date-fns/locale/en-US';
 import formatDistance from "./helpers/formatDistanceCustom";
 
 export default function HomeScreen({ navigation }) {
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [page, setPage] = useState(1);
+  const [isAtEndOfScrolling, setIsAtEndOfScrolling] = useState(false);
 
   useEffect(() => {
     getAllTweets();
-  }, [])
+  }, [page]);
 
   function getAllTweets() {
     axios
-      .get('http://127.0.0.1:8000/api/tweets')
+      .get(`http://127.0.0.1:8000/api/tweets?page=${page}`)
       .then(response => {
-        setData(response.data);
+        if (page === 1) {
+          setData(response.data.data);
+        } else {
+          setData([...data, ...response.data.data]);
+        }
+
+        if (!response.data.next_page_url) {
+          setIsAtEndOfScrolling(true);
+        }
+
         setIsLoading(false)
         setIsRefreshing(false)
       })
@@ -31,8 +42,14 @@ export default function HomeScreen({ navigation }) {
   }
 
   function handleRefresh() {
+    setPage(1);
+    setIsAtEndOfScrolling(false);
     setIsRefreshing(true);
     getAllTweets();
+  }
+
+  function handleEnd() {
+    setPage(page + 1);
   }
 
   function gotoProfile() {
@@ -159,6 +176,11 @@ export default function HomeScreen({ navigation }) {
           )}
           refreshing={isRefreshing}
           onRefresh={handleRefresh}
+          onEndReached={handleEnd}
+          onEndReachedThreshold={0}
+          ListFooterComponent={() => !isAtEndOfScrolling && (
+            <ActivityIndicator size="large" color="gray"/>
+          )}
         />
       )}
       <TouchableOpacity
@@ -168,7 +190,7 @@ export default function HomeScreen({ navigation }) {
         <AntDesign name="plus" size={26} color="white"/>
       </TouchableOpacity>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -182,11 +204,11 @@ const styles = StyleSheet.create({
   tweetContainer: {
     flexDirection: 'row',
     paddingHorizontal: 12,
-    paddingVertical: 12
+    paddingVertical: 12,
   },
   tweetSeparator: {
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb'
+    borderBottomColor: '#e5e7eb',
   },
   avatar: {
     width: 42,
@@ -196,7 +218,7 @@ const styles = StyleSheet.create({
   },
   tweetName: {
     fontWeight: 'bold',
-    color: '#222222'
+    color: '#222222',
   },
   tweetHandle: {
     marginHorizontal: 8,
