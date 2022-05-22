@@ -1,49 +1,40 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Platform } from 'react-native';
 import { AntDesign, EvilIcons } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { formatDistanceToNowStrict } from "date-fns";
+import locale from 'date-fns/locale/en-US'
+import formatDistance from "./helpers/formatDistanceCustom";
 
 export default function HomeScreen({navigation}) {
-  const DATA = [
-    {
-      id: '1',
-      title: 'First Item',
-    },
-    {
-      id: '2',
-      title: 'Second Item',
-    },
-    {
-      id: '3',
-      title: 'Third Item',
-    },
-    {
-      id: '4',
-      title: 'Fourth Item',
-    },
-    {
-      id: '5',
-      title: 'Fifth Item',
-    },
-    {
-      id: '6',
-      title: 'Sixth Item',
-    },
-    {
-      id: '7',
-      title: 'Seventh Item',
-    },
-    {
-      id: '8',
-      title: 'Eight Item',
-    },
-    {
-      id: '9',
-      title: 'Ninth Item',
-    },
-    {
-      id: '10',
-      title: 'Tenth Item',
-    },
-  ];
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    getAllTweets();
+  }, [])
+
+  function getAllTweets() {
+    axios
+      .get('http://127.0.0.1:8000/api/tweets')
+      .then(response => {
+        // console.log(response.data);
+        setData(response.data);
+      })
+      .catch((function (error) {
+        if (error.response) {
+          // Request made and server responded
+          console.log(error.response.data);
+          console.log(error.response.status);
+          console.log(error.response.headers);
+        } else if (error.request) {
+          // The request was made but no response was received
+          console.log(error.request);
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          console.log('Error', error.message);
+        }
+      }))
+  }
 
   function gotoProfile() {
     navigation.navigate('Profile Screen');
@@ -57,13 +48,13 @@ export default function HomeScreen({navigation}) {
     navigation.navigate('New Tweet');
   }
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item: tweet }) => (
     <View style={styles.tweetContainer}>
       <TouchableOpacity onPress={() => gotoProfile()}>
         <Image
           style={styles.avatar}
           source={{
-            uri: 'https://reactnative.dev/img/tiny_logo.png'
+            uri: tweet.user.avatar,
           }}
         />
       </TouchableOpacity>
@@ -76,13 +67,13 @@ export default function HomeScreen({navigation}) {
             numberOfLines={1}
             style={styles.tweetName}
           >
-            {item.title}
+            {tweet.user.name}
           </Text>
           <Text
             numberOfLines={1}
             style={styles.tweetHandle}
           >
-            @somename
+            @{tweet.user.username}
           </Text>
           <Text>
             &middot;
@@ -91,7 +82,13 @@ export default function HomeScreen({navigation}) {
             numberOfLines={1}
             style={styles.tweetHandle}
           >
-            9m
+            {/*{formatDistanceToNowStrict(new Date(tweet.created_at))}*/}
+            {formatDistanceToNowStrict(new Date(tweet.created_at), {
+              locale: {
+                ...locale,
+                formatDistance,
+              }
+            })}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tweetContentContainer}>
@@ -99,7 +96,7 @@ export default function HomeScreen({navigation}) {
             style={styles.tweetContent}
             onPress={() => gotoSingleTweet()}
           >
-            Per guest prepare one cup of white wine with warmed onion for dessert.
+            {tweet.body}
           </Text>
         </TouchableOpacity>
 
@@ -153,7 +150,7 @@ export default function HomeScreen({navigation}) {
   return (
     <View style={styles.container}>
       <FlatList
-        data={DATA}
+        data={data}
         renderItem={renderItem}
         keyExtractor={item => item.id}
         ItemSeparatorComponent={() => (

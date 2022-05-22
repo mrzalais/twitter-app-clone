@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="test@127.0.0.1" uuid="a10f8597-665b-41a7-bb0e-328241eb7962">
+    <data-source source="LOCAL" name="twitter_clone_database@localhost" uuid="2161d041-c666-4b4c-87a3-b09ca189899c">
       <driver-ref>mysql.8</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mysql://127.0.0.1:3306/test</jdbc-url>
+      <jdbc-url>jdbc:mysql://localhost:3306/twitter_clone_database</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>
