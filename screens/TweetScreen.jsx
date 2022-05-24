@@ -20,10 +20,10 @@ export default function TweetScreen({ route, navigation }) {
 
         setIsLoading(false);
       })
-      .catch((function (error) {
+      .catch(function (error) {
         console.log(error);
         setIsLoading(false);
-      }))
+      })
   }
 
   function gotoProfile() {
