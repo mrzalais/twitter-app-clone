@@ -53,7 +53,6 @@ export default function HomeScreen({ route, navigation }) {
   }
 
   function getAllTweetsRefresh() {
-    console.log(123);
     setPage(1);
     setIsAtEndOfScrolling(false);
     setIsRefreshing(false);
@@ -61,7 +60,6 @@ export default function HomeScreen({ route, navigation }) {
     axiosConfig
       .get(`/tweets`)
       .then(response => {
-        console.log(route.params?.newTweetAdded);
         setData(response.data.data);
         setIsLoading(false)
         setIsRefreshing(false)
@@ -84,8 +82,10 @@ export default function HomeScreen({ route, navigation }) {
     setPage(page + 1);
   }
 
-  function gotoProfile() {
-    navigation.navigate('Profile Screen');
+  function gotoProfile(userId) {
+    navigation.navigate('Profile Screen', {
+      userId: userId,
+    });
   }
 
   function gotoSingleTweet(tweetId) {
@@ -100,7 +100,7 @@ export default function HomeScreen({ route, navigation }) {
 
   const renderItem = ({ item: tweet }) => (
     <View style={styles.tweetContainer}>
-      <TouchableOpacity onPress={() => gotoProfile()}>
+      <TouchableOpacity onPress={() => gotoProfile(tweet.user.id)}>
         <Image
           style={styles.avatar}
           source={{
